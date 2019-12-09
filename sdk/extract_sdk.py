@@ -39,7 +39,7 @@ def main():
         p = subprocess.Popen(
                 [
                     "docker", "run", "--rm", "-t", "--user", str(os.getuid()),
-                    "-v", "{}:/xcode.xip:ro".format(xcode_path),
+                    "-v", "{}:/xcode.xip:ro".format(os.path.abspath(xcode_path)),
                     "-v", "{}:/sdk.tar".format(os.path.abspath(sdk_path)),
                     "crosstools-ios-sdk",
                 ],
