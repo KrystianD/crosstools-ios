@@ -1,0 +1,73 @@
+diff --git a/runtime/src/kmp_atomic.cpp b/runtime/src/kmp_atomic.cpp
+index 3831165..b969175 100644
+--- a/runtime/src/kmp_atomic.cpp
++++ b/runtime/src/kmp_atomic.cpp
+@@ -1139,23 +1139,23 @@ ATOMIC_CRITICAL( float16, div, QUAD_LEGACY,     /, 16r,   1 )            // __km
+ ATOMIC_CMPXCHG_WORKAROUND( cmplx4, add, kmp_cmplx32, 64, +, 8c, 7, 1 )   // __kmpc_atomic_cmplx4_add
+ ATOMIC_CMPXCHG_WORKAROUND( cmplx4, sub, kmp_cmplx32, 64, -, 8c, 7, 1 )   // __kmpc_atomic_cmplx4_sub
+ ATOMIC_CMPXCHG_WORKAROUND( cmplx4, mul, kmp_cmplx32, 64, *, 8c, 7, 1 )   // __kmpc_atomic_cmplx4_mul
+-ATOMIC_CMPXCHG_WORKAROUND( cmplx4, div, kmp_cmplx32, 64, /, 8c, 7, 1 )   // __kmpc_atomic_cmplx4_div
++// ATOMIC_CMPXCHG_WORKAROUND( cmplx4, div, kmp_cmplx32, 64, /, 8c, 7, 1 )   // __kmpc_atomic_cmplx4_div
+ // end of the workaround for C78287
+ #else
+ ATOMIC_CRITICAL( cmplx4,  add, kmp_cmplx32,     +,  8c,   1 )            // __kmpc_atomic_cmplx4_add
+ ATOMIC_CRITICAL( cmplx4,  sub, kmp_cmplx32,     -,  8c,   1 )            // __kmpc_atomic_cmplx4_sub
+ ATOMIC_CRITICAL( cmplx4,  mul, kmp_cmplx32,     *,  8c,   1 )            // __kmpc_atomic_cmplx4_mul
+-ATOMIC_CRITICAL( cmplx4,  div, kmp_cmplx32,     /,  8c,   1 )            // __kmpc_atomic_cmplx4_div
++// ATOMIC_CRITICAL( cmplx4,  div, kmp_cmplx32,     /,  8c,   1 )            // __kmpc_atomic_cmplx4_div
+ #endif // USE_CMPXCHG_FIX
+
+ ATOMIC_CRITICAL( cmplx8,  add, kmp_cmplx64,     +, 16c,   1 )            // __kmpc_atomic_cmplx8_add
+ ATOMIC_CRITICAL( cmplx8,  sub, kmp_cmplx64,     -, 16c,   1 )            // __kmpc_atomic_cmplx8_sub
+ ATOMIC_CRITICAL( cmplx8,  mul, kmp_cmplx64,     *, 16c,   1 )            // __kmpc_atomic_cmplx8_mul
+-ATOMIC_CRITICAL( cmplx8,  div, kmp_cmplx64,     /, 16c,   1 )            // __kmpc_atomic_cmplx8_div
++// ATOMIC_CRITICAL( cmplx8,  div, kmp_cmplx64,     /, 16c,   1 )            // __kmpc_atomic_cmplx8_div
+ ATOMIC_CRITICAL( cmplx10, add, kmp_cmplx80,     +, 20c,   1 )            // __kmpc_atomic_cmplx10_add
+ ATOMIC_CRITICAL( cmplx10, sub, kmp_cmplx80,     -, 20c,   1 )            // __kmpc_atomic_cmplx10_sub
+ ATOMIC_CRITICAL( cmplx10, mul, kmp_cmplx80,     *, 20c,   1 )            // __kmpc_atomic_cmplx10_mul
+-ATOMIC_CRITICAL( cmplx10, div, kmp_cmplx80,     /, 20c,   1 )            // __kmpc_atomic_cmplx10_div
++// ATOMIC_CRITICAL( cmplx10, div, kmp_cmplx80,     /, 20c,   1 )            // __kmpc_atomic_cmplx10_div
+ #if KMP_HAVE_QUAD
+ ATOMIC_CRITICAL( cmplx16, add, CPLX128_LEG,     +, 32c,   1 )            // __kmpc_atomic_cmplx16_add
+ ATOMIC_CRITICAL( cmplx16, sub, CPLX128_LEG,     -, 32c,   1 )            // __kmpc_atomic_cmplx16_sub
+@@ -1541,7 +1541,7 @@ ATOMIC_BEGIN_MIX(TYPE_ID,TYPE,OP_ID,RTYPE_ID,RTYPE)
+ ATOMIC_CMPXCHG_CMPLX( cmplx4, kmp_cmplx32, add, 64, +, cmplx8,  kmp_cmplx64,  8c, 7, KMP_ARCH_X86 ) // __kmpc_atomic_cmplx4_add_cmplx8
+ ATOMIC_CMPXCHG_CMPLX( cmplx4, kmp_cmplx32, sub, 64, -, cmplx8,  kmp_cmplx64,  8c, 7, KMP_ARCH_X86 ) // __kmpc_atomic_cmplx4_sub_cmplx8
+ ATOMIC_CMPXCHG_CMPLX( cmplx4, kmp_cmplx32, mul, 64, *, cmplx8,  kmp_cmplx64,  8c, 7, KMP_ARCH_X86 ) // __kmpc_atomic_cmplx4_mul_cmplx8
+-ATOMIC_CMPXCHG_CMPLX( cmplx4, kmp_cmplx32, div, 64, /, cmplx8,  kmp_cmplx64,  8c, 7, KMP_ARCH_X86 ) // __kmpc_atomic_cmplx4_div_cmplx8
++// ATOMIC_CMPXCHG_CMPLX( cmplx4, kmp_cmplx32, div, 64, /, cmplx8,  kmp_cmplx64,  8c, 7, KMP_ARCH_X86 ) // __kmpc_atomic_cmplx4_div_cmplx8
+
+ // READ, WRITE, CAPTURE are supported only on IA-32 architecture and Intel(R) 64
+ #if KMP_ARCH_X86 || KMP_ARCH_X86_64
+diff --git a/runtime/src/kmp_atomic.h b/runtime/src/kmp_atomic.h
+index 7a98de6..d3d37c2 100644
+--- a/runtime/src/kmp_atomic.h
++++ b/runtime/src/kmp_atomic.h
+@@ -573,15 +573,15 @@ void __kmpc_atomic_float16_div( ident_t *id_ref, int gtid, QUAD_LEGACY * lhs, QU
+ void __kmpc_atomic_cmplx4_add(  ident_t *id_ref, int gtid, kmp_cmplx32 * lhs, kmp_cmplx32 rhs );
+ void __kmpc_atomic_cmplx4_sub(  ident_t *id_ref, int gtid, kmp_cmplx32 * lhs, kmp_cmplx32 rhs );
+ void __kmpc_atomic_cmplx4_mul(  ident_t *id_ref, int gtid, kmp_cmplx32 * lhs, kmp_cmplx32 rhs );
+-void __kmpc_atomic_cmplx4_div(  ident_t *id_ref, int gtid, kmp_cmplx32 * lhs, kmp_cmplx32 rhs );
++// void __kmpc_atomic_cmplx4_div(  ident_t *id_ref, int gtid, kmp_cmplx32 * lhs, kmp_cmplx32 rhs );
+ void __kmpc_atomic_cmplx8_add(  ident_t *id_ref, int gtid, kmp_cmplx64 * lhs, kmp_cmplx64 rhs );
+ void __kmpc_atomic_cmplx8_sub(  ident_t *id_ref, int gtid, kmp_cmplx64 * lhs, kmp_cmplx64 rhs );
+ void __kmpc_atomic_cmplx8_mul(  ident_t *id_ref, int gtid, kmp_cmplx64 * lhs, kmp_cmplx64 rhs );
+-void __kmpc_atomic_cmplx8_div(  ident_t *id_ref, int gtid, kmp_cmplx64 * lhs, kmp_cmplx64 rhs );
++// void __kmpc_atomic_cmplx8_div(  ident_t *id_ref, int gtid, kmp_cmplx64 * lhs, kmp_cmplx64 rhs );
+ void __kmpc_atomic_cmplx10_add( ident_t *id_ref, int gtid, kmp_cmplx80 * lhs, kmp_cmplx80 rhs );
+ void __kmpc_atomic_cmplx10_sub( ident_t *id_ref, int gtid, kmp_cmplx80 * lhs, kmp_cmplx80 rhs );
+ void __kmpc_atomic_cmplx10_mul( ident_t *id_ref, int gtid, kmp_cmplx80 * lhs, kmp_cmplx80 rhs );
+-void __kmpc_atomic_cmplx10_div( ident_t *id_ref, int gtid, kmp_cmplx80 * lhs, kmp_cmplx80 rhs );
++// void __kmpc_atomic_cmplx10_div( ident_t *id_ref, int gtid, kmp_cmplx80 * lhs, kmp_cmplx80 rhs );
+ #if KMP_HAVE_QUAD
+ void __kmpc_atomic_cmplx16_add( ident_t *id_ref, int gtid, CPLX128_LEG * lhs, CPLX128_LEG rhs );
+ void __kmpc_atomic_cmplx16_sub( ident_t *id_ref, int gtid, CPLX128_LEG * lhs, CPLX128_LEG rhs );
+@@ -753,7 +753,7 @@ void __kmpc_atomic_float10_div_rev_fp( ident_t *id_ref, int gtid, long double *
+ void __kmpc_atomic_cmplx4_add_cmplx8( ident_t *id_ref, int gtid, kmp_cmplx32 * lhs, kmp_cmplx64 rhs );
+ void __kmpc_atomic_cmplx4_sub_cmplx8( ident_t *id_ref, int gtid, kmp_cmplx32 * lhs, kmp_cmplx64 rhs );
+ void __kmpc_atomic_cmplx4_mul_cmplx8( ident_t *id_ref, int gtid, kmp_cmplx32 * lhs, kmp_cmplx64 rhs );
+-void __kmpc_atomic_cmplx4_div_cmplx8( ident_t *id_ref, int gtid, kmp_cmplx32 * lhs, kmp_cmplx64 rhs );
++// void __kmpc_atomic_cmplx4_div_cmplx8( ident_t *id_ref, int gtid, kmp_cmplx32 * lhs, kmp_cmplx64 rhs );
+
+ // generic atomic routines
+ void __kmpc_atomic_1(  ident_t *id_ref, int gtid, void* lhs, void* rhs, void (*f)( void *, void *, void * ) );

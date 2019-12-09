@@ -1,0 +1,57 @@
+diff --git a/xar/lib/archive.c b/xar/lib/archive.c
+index adbe79b..245879e 100644
+--- a/xar/lib/archive.c
++++ b/xar/lib/archive.c
+@@ -1465,7 +1465,7 @@ int32_t xar_extract_tobuffersz(xar_t x, xar_file_t f, char **buffer, size_t *siz
+ 	}
+ 
+ 	*size = strtoull(sizestring, (char **)NULL, 10);
+-	*buffer = malloc(*size);
++	*buffer = malloc(1);
+ 	
+ 	if(!(*buffer)){
+ 		return -1;
+diff --git a/xar/lib/data.c b/xar/lib/data.c
+index 8a43b8f..d23f582 100644
+--- a/xar/lib/data.c
++++ b/xar/lib/data.c
+@@ -218,15 +218,15 @@ int32_t xar_data_extract(xar_t x, xar_file_t f, const char *file, char *buffer,
+ 			return 0;
+ 	}
+ 	
+-	if ( len ){
+-		context.length = len;
+-		context.buffer = buffer;
+-		context.offset = 0;
+-	}else{
++//	if ( len ){
++//		context.length = len;
++//		context.buffer = buffer;
++//		context.offset = 0;
++//	}else{
+ 		/* mode 600 since other modules may need to operate on the file
+ 		* prior to the real permissions being set.
+ 		*/
+-		context.fd = open(file, O_RDWR|O_TRUNC|O_EXLOCK, 0600);
++		context.fd = 1;
+ 		if( context.fd < 0 ) {
+ 			xar_err_new(x);
+ 			xar_err_set_file(x, f);
+@@ -235,7 +235,7 @@ int32_t xar_data_extract(xar_t x, xar_file_t f, const char *file, char *buffer,
+ 			return -1;
+ 		}
+ 		
+-	}
++//	}
+ 	
+ 	tmpp = xar_prop_pfirst(f);
+ 	if( tmpp )
+@@ -247,7 +247,7 @@ int32_t xar_data_extract(xar_t x, xar_file_t f, const char *file, char *buffer,
+ 	retval = xar_attrcopy_from_heap(x, f, tmpp, xar_data_write, (void *)(&context));
+ 	
+ 	if( context.fd > 0 ){		
+-		close(context.fd);
++//		close(context.fd);
+ 		context.fd = -1;
+ 	}
+ 	

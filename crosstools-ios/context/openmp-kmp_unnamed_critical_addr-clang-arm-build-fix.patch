@@ -1,0 +1,32 @@
+diff --git a/runtime/src/z_Linux_asm.s b/runtime/src/z_Linux_asm.s
+index d6e1c0b..69f94ef 100644
+--- a/runtime/src/z_Linux_asm.s
++++ b/runtime/src/z_Linux_asm.s
+@@ -1781,10 +1781,10 @@ __kmp_invoke_microtask:
+     .comm .gomp_critical_user_,32,8
+     .data
+     .align 4
+-    .global __kmp_unnamed_critical_addr
+-__kmp_unnamed_critical_addr:
++    .global ___kmp_unnamed_critical_addr
++___kmp_unnamed_critical_addr:
+     .4byte .gomp_critical_user_
+-    .size __kmp_unnamed_critical_addr,4
++//    .size __kmp_unnamed_critical_addr,4
+ #endif /* KMP_ARCH_ARM */
+
+ #if KMP_ARCH_PPC64 || KMP_ARCH_AARCH64 || KMP_ARCH_MIPS64
+@@ -1792,10 +1792,10 @@ __kmp_unnamed_critical_addr:
+     .comm .gomp_critical_user_,32,8
+     .data
+     .align 8
+-    .global __kmp_unnamed_critical_addr
+-__kmp_unnamed_critical_addr:
++    .global ___kmp_unnamed_critical_addr
++___kmp_unnamed_critical_addr:
+     .8byte .gomp_critical_user_
+-    .size __kmp_unnamed_critical_addr,8
++//    .size __kmp_unnamed_critical_addr,8
+ #endif /* KMP_ARCH_PPC64 || KMP_ARCH_AARCH64 */
+
+ #if KMP_OS_LINUX

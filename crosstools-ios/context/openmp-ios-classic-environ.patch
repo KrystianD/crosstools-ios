@@ -1,0 +1,22 @@
+diff --git a/runtime/src/kmp_environment.cpp b/runtime/src/kmp_environment.cpp
+index d4d95df..c8c2970 100644
+--- a/runtime/src/kmp_environment.cpp
++++ b/runtime/src/kmp_environment.cpp
+@@ -64,12 +64,12 @@
+ #if KMP_OS_UNIX
+     #include <stdlib.h>    // getenv, setenv, unsetenv.
+     #include <string.h>    // strlen, strcpy.
+-    #if KMP_OS_DARWIN
+-        #include <crt_externs.h>
+-        #define environ (*_NSGetEnviron())
+-    #else
++//     #if KMP_OS_DARWIN
++//         #include <crt_externs.h>
++//         #define environ (*_NSGetEnviron())
++//     #else
+         extern char * * environ;
+-    #endif
++//     #endif
+ #elif KMP_OS_WINDOWS
+     #include <windows.h>   // GetEnvironmentVariable, SetEnvironmentVariable, GetLastError.
+ #else
