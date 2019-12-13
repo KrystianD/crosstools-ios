@@ -154,4 +154,4 @@ ENV PATH=/usr/arm-apple-darwin11/bin/:$PATH
 COPY --from=builder-cmake /opt/cmake /opt/cmake
 ENV PATH=/opt/cmake/bin:$PATH
 
-COPY toolchain-ios.cmake /
+COPY toolchain-ios.cmake /usr/arm-apple-darwin11/
