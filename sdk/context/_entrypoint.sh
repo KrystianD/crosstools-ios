@@ -3,6 +3,7 @@ set -ex
 
 cat > /tmp/patterns <<EOF
 ./Xcode*/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/*
+./Xcode*/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/*
 ./Xcode*/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/*
 EOF
 
@@ -15,10 +16,18 @@ xar --extract --file /xcode.xip Content --to-stdout | \
 
 OUT_FILE=/sdk.tar
 
-pushd /tmp/sdk/Xcode*.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/
-tar -cf ${OUT_FILE} *
+pushd /tmp/sdk/Xcode*.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/
+tar -cf ${OUT_FILE} iPhoneOS.sdk
 popd
 
 pushd /tmp/sdk/Xcode*.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/
-tar -rf ${OUT_FILE} *
+tar -rf ${OUT_FILE} --transform 's,^,iPhoneOS.sdk/,' *
+popd
+
+pushd /tmp/sdk/Xcode*.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/
+tar -rf ${OUT_FILE} iPhoneSimulator.sdk
+popd
+
+pushd /tmp/sdk/Xcode*.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/
+tar -rf ${OUT_FILE} --transform 's,^,iPhoneSimulator.sdk/,' *
 popd
