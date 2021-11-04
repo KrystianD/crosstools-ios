@@ -146,7 +146,7 @@ RUN export DEBIAN_FRONTEND=noninteractive; apt-get update && apt-get install -y 
 
 ARG OPENMP_REVISION=07c5582c3b767e3f55753c493905e99498862441
 
-RUN wget https://github.com/llvm-project/openmp/archive/${OPENMP_REVISION}.zip
+RUN wget https://github.com/llvm-mirror/openmp/archive/${OPENMP_REVISION}.zip
 
 COPY --from=builder-cmake /opt/cmake /opt/cmake
 ENV PATH=/opt/cmake/bin:$PATH
