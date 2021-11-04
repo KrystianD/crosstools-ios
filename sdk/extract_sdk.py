@@ -25,7 +25,7 @@ def main():
         print("xcode path should be a .xip archive")
         exit(1)
 
-    sdk_path = "sdk.tar"
+    sdk_path = os.path.join(script_dir, "sdk.tar")
 
     subprocess.check_call(["docker", "build", "-t", "crosstools-ios-sdk", "context/"],
                           preexec_fn=os.setsid,
