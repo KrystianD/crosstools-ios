@@ -23,3 +23,5 @@ set(CMAKE_FIND_FRAMEWORK FIRST)
 set(CMAKE_SYSTEM_FRAMEWORK_PATH
     ${CMAKE_IOS_SDK_ROOT}/System/Library/Frameworks
 )
+
+set(CMAKE_CXX_FLAGS "-std=c++17")

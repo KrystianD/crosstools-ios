@@ -60,7 +60,10 @@ int main(int argc, char *argv[])
     snprintf(osvermin, sizeof(osvermin), "-miphoneos-version-min=%s", OS_VER_MIN);
     args[i++] = osvermin;
 
-    args[i++] = "-mlinker-version=450.3";
+    args[i++] = "-mlinker-version=907";
+    args[i++] = "-Wl,-adhoc_codesign";
+    args[i++] = "-Wno-unused-command-line-argument";
+    args[i++] = "-stdlib=libc++";
 
     for (int j = 1; j < argc; ++i, ++j)
         args[i] = argv[j];

@@ -1,12 +1,12 @@
 #################
 ##### cmake #####
 #################
-FROM ubuntu:18.04 as builder-cmake
+FROM ubuntu:22.04 as builder-cmake
 
 RUN export DEBIAN_FRONTEND=noninteractive; apt-get update && apt-get install -y \
         software-properties-common wget curl apt-transport-https vim git build-essential clang libxml2-dev libssl-dev unzip jq
 
-ARG CMAKE_VERSION=3.14.5
+ARG CMAKE_VERSION=3.18.0
 
 RUN mkdir cmake && cd cmake && \
     wget https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}.tar.gz && \
@@ -21,12 +21,12 @@ RUN mkdir cmake && cd cmake && \
 ###################
 ##### libtapi #####
 ###################
-FROM ubuntu:18.04 as builder-libtapi
+FROM ubuntu:22.04 as builder-libtapi
 
 RUN export DEBIAN_FRONTEND=noninteractive; apt-get update && apt-get install -y \
         software-properties-common wget curl apt-transport-https vim git build-essential clang libxml2-dev libssl-dev unzip jq
 
-RUN git clone https://github.com/tpoechtrager/apple-libtapi.git --depth 1 --branch 1000.10.8
+RUN git clone https://github.com/tpoechtrager/apple-libtapi.git --depth 1 --branch 1300.6.5
 
 COPY --from=builder-cmake /opt/cmake /opt/cmake
 ENV PATH=/opt/cmake/bin:$PATH
@@ -43,7 +43,7 @@ RUN cd apple-libtapi && \
 ###############
 ##### xar #####
 ###############
-FROM ubuntu:18.04 as builder-xar
+FROM ubuntu:22.04 as builder-xar
 
 RUN export DEBIAN_FRONTEND=noninteractive; apt-get update && apt-get install -y \
         software-properties-common wget curl apt-transport-https vim git build-essential clang libxml2-dev libssl-dev unzip jq \
@@ -73,29 +73,76 @@ RUN cd xar/xar; \
     make -j$(nproc) && \
     make install
 
-###################
-##### cctools #####
-###################
-FROM ubuntu:18.04 as builder-cctools
+FROM ubuntu:22.04 as builder-libdispatch
 
 RUN export DEBIAN_FRONTEND=noninteractive; apt-get update && apt-get install -y \
         software-properties-common wget curl apt-transport-https vim git build-essential clang libxml2-dev libssl-dev unzip jq
 
+COPY --from=builder-cmake /opt/cmake /opt/cmake
+ENV PATH=/opt/cmake/bin:$PATH
+
+RUN git clone https://github.com/tpoechtrager/apple-libdispatch
+
+RUN export DEBIAN_FRONTEND=noninteractive; apt-get install -y libblocksruntime-dev
+
+RUN cd apple-libdispatch && \
+    rm -rf build && mkdir build && cd build && \
+    cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_INSTALL_PREFIX=/usr/arm-apple-darwin11 \
+      --with-blocks-runtime /usr/include \
+      .. && \
+    make && \
+    make install
+
+RUN cd apple-libdispatch && \
+    rm -rf build && mkdir build && cd build && \
+    cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_INSTALL_PREFIX=/usr/x86_64-apple-darwin11 \
+      --with-blocks-runtime /usr/include \
+      .. && \
+    make && \
+    make install
+
+###################
+##### cctools #####
+###################
+FROM ubuntu:22.04 as builder-cctools
+
+RUN export DEBIAN_FRONTEND=noninteractive; apt-get update && apt-get install -y \
+        software-properties-common wget curl apt-transport-https vim git build-essential \
+        clang libxml2-dev libssl-dev unzip jq autoconf automake libtool \
+        libblocksruntime-dev
+
 COPY --from=builder-libtapi /usr/arm-apple-darwin11 /usr/arm-apple-darwin11
 COPY --from=builder-xar /usr/arm-apple-darwin11 /usr/arm-apple-darwin11
+COPY --from=builder-libdispatch /usr/arm-apple-darwin11 /usr/arm-apple-darwin11
 COPY --from=builder-libtapi /usr/x86_64-apple-darwin11 /usr/x86_64-apple-darwin11
 COPY --from=builder-xar /usr/x86_64-apple-darwin11 /usr/x86_64-apple-darwin11
+COPY --from=builder-libdispatch /usr/x86_64-apple-darwin11 /usr/x86_64-apple-darwin11
 
-RUN git clone https://github.com/tpoechtrager/cctools-port.git --depth 1
+RUN git clone https://github.com/tpoechtrager/cctools-port.git  --depth 1 --branch 1009.2-ld64-907
 
 RUN cd cctools-port/cctools && \
-    ./configure --prefix=/usr/arm-apple-darwin11 --target arm-apple-darwin11 --with-libtapi=/usr/arm-apple-darwin11 --with-libxar=/usr/arm-apple-darwin11 && \
+    git clean -xfd && \
+    ./autogen.sh && \
+    ./configure \
+      --prefix=/usr/arm-apple-darwin11 \
+        --target arm-apple-darwin11 \
+        --with-libtapi=/usr/arm-apple-darwin11 \
+        --with-libxar=/usr/arm-apple-darwin11 \
+        --with-libdispatch=/usr/arm-apple-darwin11 \
+      && \
     make -j$(nproc) && \
     make install
 
 RUN cd cctools-port/cctools && \
     git clean -xfd && \
-    ./configure --prefix=/usr/x86_64-apple-darwin11 --target x86_64-apple-darwin11 --with-libtapi=/usr/x86_64-apple-darwin11 --with-libxar=/usr/x86_64-apple-darwin11 && \
+    ./autogen.sh && \
+    ./configure \
+      --prefix=/usr/x86_64-apple-darwin11 \
+        --target x86_64-apple-darwin11 \
+        --with-libtapi=/usr/x86_64-apple-darwin11 \
+        --with-libxar=/usr/x86_64-apple-darwin11 \
+        --with-libdispatch=/usr/x86_64-apple-darwin11 \
+      && \
     make -j$(nproc) && \
     make install
 
@@ -110,14 +157,17 @@ RUN cc -O2 -Wall -Wextra -pedantic /wrapper.c -o /usr/arm-apple-darwin11/bin/arm
 ################s
 ##### ldid #####
 ################
-FROM ubuntu:18.04 as builder-ldid
+FROM ubuntu:22.04 as builder-ldid
 
 RUN export DEBIAN_FRONTEND=noninteractive; apt-get update && apt-get install -y \
         software-properties-common wget curl apt-transport-https vim git build-essential clang libxml2-dev libssl-dev unzip jq
 
-RUN git clone https://github.com/tpoechtrager/ldid.git --depth 1 --branch master
+RUN git clone https://github.com/tpoechtrager/ldid.git --depth 1 --branch master && \
+    cd ldid && \
+    git checkout 4bf8f4d60384a0693dbbe2084ce62a35bfeb87ab
 
 RUN cd ldid && \
+    git clean -xfd && \
     make -j$(nproc) INSTALLPREFIX=/usr/arm-apple-darwin11 install
 
 RUN cd ldid && \
@@ -127,7 +177,7 @@ RUN cd ldid && \
 ###############
 ##### SDK #####
 ###############
-FROM ubuntu:18.04 as builder-sdk
+FROM ubuntu:22.04 as builder-sdk
 
 RUN export DEBIAN_FRONTEND=noninteractive; apt-get update && apt-get install -y \
         software-properties-common wget curl apt-transport-https vim git build-essential clang libxml2-dev libssl-dev unzip jq
@@ -149,17 +199,18 @@ RUN mkdir -p /usr/x86_64-apple-darwin11/sdk/usr/local && \
 ##################
 ##### openmp #####
 ##################
-FROM ubuntu:18.04 as builder-openmp
+FROM ubuntu:22.04 as builder-openmp
 
 RUN export DEBIAN_FRONTEND=noninteractive; apt-get update && apt-get install -y \
         software-properties-common wget curl apt-transport-https vim git build-essential clang libxml2-dev libssl-dev unzip jq
 
-ARG OPENMP_REVISION=07c5582c3b767e3f55753c493905e99498862441
+ARG OPENMP_REVISION=56d941a8cede7c0d6aa4dc19e8f0b95de6f97e1b
 
-RUN wget https://github.com/llvm-mirror/openmp/archive/${OPENMP_REVISION}.zip
+RUN git clone https://github.com/llvm/llvm-project && \
+    cd /llvm-project && \
+    git checkout 3b5b5c1ec4a3095ab096dd780e84d7ab81f3d7ff
 
-COPY --from=builder-cmake /opt/cmake /opt/cmake
-ENV PATH=/opt/cmake/bin:$PATH
+RUN export DEBIAN_FRONTEND=noninteractive; apt-get install -y libstdc++-12-dev cmake
 
 COPY --from=builder-cctools /usr/arm-apple-darwin11 /usr/arm-apple-darwin11
 COPY --from=builder-sdk /usr/arm-apple-darwin11 /usr/arm-apple-darwin11
@@ -171,37 +222,33 @@ ENV PATH=/usr/arm-apple-darwin11/bin/:/usr/x86_64-apple-darwin11/bin/:$PATH
 
 COPY *.patch toolchain-ios.cmake toolchain-ios-sim.cmake /
 
-RUN unzip ${OPENMP_REVISION}.zip && \
-    cd /openmp-${OPENMP_REVISION} && \
-    patch -p1 -i /openmp-ios-classic-environ.patch && \
-    patch -p1 -i /openmp-kmp_unnamed_critical_addr-clang-arm-build-fix.patch && \
-    patch -p1 -i /openmp-atomic-drop-complex-div.patch && \
+RUN cd /llvm-project/openmp && \
+    git clean -xfd && \
     mkdir build && \
     cd build && \
     cmake -DCMAKE_TOOLCHAIN_FILE=/toolchain-ios.cmake \
           -DLIBOMP_ENABLE_SHARED=off \
           -DCMAKE_INSTALL_PREFIX=/usr/arm-apple-darwin11 \
+          -DLIBOMP_ARCH=arm -DLIBOMP_OMPT_SUPPORT=OFF \
           -Wno-dev .. && \
     make -j$(nproc) && \
-    make install && \
-    rm -rf /openmp-${OPENMP_REVISION}
+    make install
 
-RUN unzip ${OPENMP_REVISION}.zip && \
-    cd /openmp-${OPENMP_REVISION} && \
-    mkdir build && \
-    cd build && \
+RUN cd /llvm-project/openmp && \
+    mkdir build2 && \
+    cd build2 && \
     cmake -DCMAKE_TOOLCHAIN_FILE=/toolchain-ios-sim.cmake \
           -DLIBOMP_ENABLE_SHARED=off \
           -DCMAKE_INSTALL_PREFIX=/usr/x86_64-apple-darwin11 \
+          -DLIBOMP_ARCH=x86_64 -DLIBOMP_OMPT_SUPPORT=OFF \
           -Wno-dev .. && \
     make -j$(nproc) && \
-    make install && \
-    rm -rf /openmp-${OPENMP_REVISION}
+    make install
 
 ################################################
 ##################### MAIN #####################
 ################################################
-FROM ubuntu:18.04
+FROM ubuntu:22.04
 
 RUN export DEBIAN_FRONTEND=noninteractive; apt-get update && apt-get install -y \
         software-properties-common wget curl apt-transport-https vim git build-essential clang libxml2-dev libssl-dev unzip jq

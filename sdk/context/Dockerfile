@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:22.04
 
 RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get update && apt-get install -y git wget build-essential libxml2-dev libssl-dev autoconf cpio libssl-dev libz-dev
