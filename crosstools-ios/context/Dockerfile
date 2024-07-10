@@ -46,20 +46,30 @@ RUN cd apple-libtapi && \
 FROM ubuntu:18.04 as builder-xar
 
 RUN export DEBIAN_FRONTEND=noninteractive; apt-get update && apt-get install -y \
-        software-properties-common wget curl apt-transport-https vim git build-essential clang libxml2-dev libssl-dev unzip jq
+        software-properties-common wget curl apt-transport-https vim git build-essential clang libxml2-dev libssl-dev unzip jq \
+        autoconf libssl-dev libz-dev
 
-RUN wget https://github.com/downloads/mackyle/xar/xar-1.6.1.tar.gz
+RUN git clone https://github.com/tpoechtrager/xar && \
+    cd xar && \
+    git checkout 5fa4675419cfec60ac19a9c7f7c2d0e7c831a497
 
-RUN tar -xf xar-1.6.1.tar.gz && \
-    cd xar-1.6.1 && \
-    ac_cv_lib_crypto_OpenSSL_add_all_ciphers=yes ./configure --prefix=/usr/arm-apple-darwin11 && \
+RUN cd xar/xar; \
+    git clean -xfd; \
+    ./autogen.sh \
+        --prefix=/usr \
+        CFLAGS="-I/usr/include" \
+        LDFLAGS="-L/usr/lib/x86_64-linux-gnu/"; \
+    ./configure --prefix=/usr/arm-apple-darwin11 && \
     make -j$(nproc) && \
-    make install && \
-    rm -rf /xar-1.6.1
+    make install
 
-RUN tar -xf xar-1.6.1.tar.gz && \
-    cd xar-1.6.1 && \
-    ac_cv_lib_crypto_OpenSSL_add_all_ciphers=yes ./configure --prefix=/usr/x86_64-apple-darwin11 && \
+RUN cd xar/xar; \
+    git clean -xfd; \
+    ./autogen.sh \
+        --prefix=/usr \
+        CFLAGS="-I/usr/include" \
+        LDFLAGS="-L/usr/lib/x86_64-linux-gnu/"; \
+    ./configure --prefix=/usr/x86_64-apple-darwin11 && \
     make -j$(nproc) && \
     make install
 
