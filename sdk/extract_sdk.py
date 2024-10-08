@@ -26,12 +26,13 @@ def main():
         exit(1)
 
     sdk_path = os.path.join(script_dir, "sdk.tar")
+    sdk_path_tmp = os.path.join(script_dir, "sdk.tar.tmp")
 
     subprocess.check_call(["docker", "build", "-t", "crosstools-ios-sdk", "context/"],
                           preexec_fn=os.setsid,
                           cwd=script_dir)
 
-    with open(sdk_path, "wb"):
+    with open(sdk_path_tmp, "wb"):
         pass
 
     p = None
@@ -40,12 +41,14 @@ def main():
                 [
                     "docker", "run", "--rm", "-t", "--user", str(os.getuid()),
                     "-v", "{}:/xcode.xip:ro".format(os.path.abspath(xcode_path)),
-                    "-v", "{}:/sdk.tar".format(os.path.abspath(sdk_path)),
+                    "-v", "{}:/sdk.tar".format(os.path.abspath(sdk_path_tmp)),
                     "crosstools-ios-sdk",
                 ],
                 preexec_fn=os.setsid,
                 cwd=script_dir)
         p.wait()
+
+        os.rename(sdk_path_tmp, sdk_path)
     except KeyboardInterrupt:
         if p is not None:
             os.killpg(os.getpgid(p.pid), signal.SIGINT)
