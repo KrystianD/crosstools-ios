@@ -7,7 +7,11 @@
 #include <unistd.h>
 #include <limits.h>
 
-#define OS_VER_MIN "8.0"
+#define str(s) #s
+#define xstr(s) str(s)
+
+#define OS_VER_MIN "12.0"
+#define OS_VER_MIN_NUMBER "120000"
 
 char *get_filename(char *str)
 {
@@ -47,7 +51,7 @@ int main(int argc, char *argv[])
 
     setenv("IOS_FAKE_CODE_SIGN", "1", 1);
 
-    char **args = alloca(sizeof(char*) * (argc+12));
+    char **args = alloca(sizeof(char*) * (argc+50));
     int i = 0;
 
     args[i++] = compiler;
@@ -56,9 +60,14 @@ int main(int argc, char *argv[])
     args[i++] = "-isysroot";
     args[i++] = sdkpath;
 
-    char osvermin[64];
-    snprintf(osvermin, sizeof(osvermin), "-miphoneos-version-min=%s", OS_VER_MIN);
-    args[i++] = osvermin;
+    args[i++] = "-arch"; // must be space-separated
+    args[i++] = xstr(ARCH);
+
+    args[i++] = "-miphoneos-version-min=" OS_VER_MIN;
+    args[i++] = "-D__IPHONE_OS_VERSION_MIN_REQUIRED=" OS_VER_MIN_NUMBER;
+    args[i++] = "-DTARGET_OS_IPHONE=1";
+    args[i++] = "-mios-version-min=" OS_VER_MIN;
+    args[i++] = "-mios-simulator-version-min=" OS_VER_MIN;
 
     args[i++] = "-mlinker-version=907";
     args[i++] = "-Wl,-adhoc_codesign";
@@ -69,6 +78,12 @@ int main(int argc, char *argv[])
         args[i] = argv[j];
 
     args[i] = NULL;
+
+    if (getenv("WRAPPER_DEBUG") != NULL) {
+        for (int j = 0; args[j]; ++j)
+            fprintf(stderr, "%s ", args[j]);
+        fprintf(stderr, "\n");
+    }
 
     setenv("COMPILER_PATH", binpath, 1);
     execvp(compiler, args);

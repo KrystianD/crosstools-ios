@@ -4,12 +4,12 @@ set (UNIX True)
 set (APPLE True)
 set (IOS True)
 
-set(CMAKE_C_COMPILER arm-apple-darwin11-clang)
-set(CMAKE_CXX_COMPILER arm-apple-darwin11-clang++)
+set(CMAKE_C_COMPILER arm64-ios-simulator-clang)
+set(CMAKE_CXX_COMPILER arm64-ios-simulator-clang++)
 
-set(_CMAKE_TOOLCHAIN_PREFIX arm-apple-darwin11-)
+set(_CMAKE_TOOLCHAIN_PREFIX arm64-ios-simulator-)
 
-set(CMAKE_IOS_SDK_ROOT "/usr/arm-apple-darwin11/sdk")
+set(CMAKE_IOS_SDK_ROOT "/usr/arm64-ios-simulator/sdk")
 
 set(CMAKE_OSX_SYSROOT ${CMAKE_IOS_SDK_ROOT} CACHE PATH "Sysroot used for iOS support")
 

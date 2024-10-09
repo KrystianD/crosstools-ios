@@ -6,4 +6,6 @@ if [[ ! -e ../sdk/sdk.tar ]]; then
     exit 1
 fi
 
-tar -cf - -C context/ . -C ../../sdk/ ./sdk.tar | docker build -t crosstools-ios:libtapi1300-xar5fa4-omp56d94-cctools1009-ldid4bf8-sdk11_3-llvm3b5b -
+SDK=15_3
+
+tar -cf - -C context/ . -C ../../sdk/ ./sdk.tar | docker build -t crosstools-ios:libtapi1300-xar5fa4-omp56d94-cctools1009-ldid4bf8-sdk$SDK-llvm3b5b -
